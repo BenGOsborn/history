@@ -60,7 +60,6 @@ int main()
         return 1;
     }
     saveData(nodes, outFile);
-    outFile.close();
 
     std::ifstream inFile(FILE_NAME);
     if (!inFile)
@@ -68,7 +67,6 @@ int main()
         return 1;
     }
     std::vector<Node> finalNodes = loadData(inFile);
-    inFile.close();
 
     return 0;
 }
