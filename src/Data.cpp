@@ -47,3 +47,15 @@ CSVData::CSVData(std::unique_ptr<IFile> file) : file_(std::move(file))
         throw std::runtime_error("file cannot be null");
     }
 }
+
+std::map<std::string, std::vector<std::string>> CSVData::read() const
+{
+    std::vector<std::string> rows = file_->read();
+    if (rows.size() < 1)
+    {
+        throw std::runtime_error("file must have at least one row");
+    }
+    std::string header = rows.at(0);
+}
+
+void CSVData::write(const std::map<std::string, std::vector<std::string>> &data) {}
