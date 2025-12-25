@@ -2,23 +2,26 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
+#include <fstream>
+
+const char DELIM = ',';
+const char ESCAPE = '\\';
 
 File::File(std::string &filename) : filename_(filename)
 {
-    file_.open(filename, std::ios::in | std::ios::out);
-    if (!file_)
-    {
-        throw std::runtime_error("failed to open file: " + filename);
-    }
 }
 
 std::vector<std::string> File::read() const
 {
-    file_.clear();
-    file_.seekg(0, std::ios::beg);
+
+    std::ifstream file(filename_);
+    if (!file)
+    {
+        throw std::runtime_error("failed to open file");
+    }
     std::vector<std::string> out;
     std::string line;
-    while (std::getline(file_, line))
+    while (std::getline(file, line))
     {
         out.push_back(line);
     }
@@ -27,17 +30,15 @@ std::vector<std::string> File::read() const
 
 void File::write(const std::vector<std::string> &data)
 {
-    file_.close();
-    file_.open(filename_, std::ios::out | std::ios::trunc);
-    if (!file_)
+    std::ofstream file(filename_);
+    if (!file)
+    {
         throw std::runtime_error("Failed to open file for writing");
+    }
     for (const auto &line : data)
     {
-        file_ << line << '\n';
+        file << line << '\n';
     }
-    file_.flush();
-    file_.close();
-    file_.open(filename_, std::ios::in | std::ios::out);
 }
 
 CSVData::CSVData(std::unique_ptr<IFile> file) : file_(std::move(file))
@@ -46,6 +47,10 @@ CSVData::CSVData(std::unique_ptr<IFile> file) : file_(std::move(file))
     {
         throw std::runtime_error("file cannot be null");
     }
+}
+
+std::string unescapeString(const std::string &str) noexcept
+{
 }
 
 std::map<std::string, std::vector<std::string>> CSVData::read() const
@@ -58,4 +63,29 @@ std::map<std::string, std::vector<std::string>> CSVData::read() const
     std::string header = rows.at(0);
 }
 
-void CSVData::write(const std::map<std::string, std::vector<std::string>> &data) {}
+std::string escapeString(const std::string &str) noexcept
+{
+    std::string escaped;
+    for (const char &c : str)
+    {
+        if (c == ESCAPE)
+        {
+            escaped += ESCAPE;
+        }
+        escaped += c;
+    }
+    std::string out;
+    for (const char &c : escaped)
+    {
+        if (c == DELIM)
+        {
+            out += ESCAPE;
+        }
+        out += c;
+    }
+    return out;
+}
+
+void CSVData::write(const std::map<std::string, std::vector<std::string>> &data)
+{
+}

@@ -2,7 +2,6 @@
 #include <memory>
 #include <vector>
 #include <map>
-#include <fstream>
 #include <string>
 
 class IFile
@@ -15,7 +14,6 @@ public:
 
 class File : public IFile
 {
-    mutable std::fstream file_;
     std::string filename_;
 
 public:
