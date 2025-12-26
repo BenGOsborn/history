@@ -19,16 +19,16 @@ namespace Graph
     {
         struct GraphNode
         {
-            Node::Node *node;
+            Node::Node node;
             std::vector<GraphNode *> parents;
             std::vector<GraphNode *> children;
         };
 
-        std::vector<Node::Node> nodes_;
-        std::map<int, GraphNode> IDToNode_;
+        std::map<int, GraphNode> nodes_;
+        int maxNodeID_;
 
     public:
-        explicit Graph(std::vector<Node::Node> nodes);
+        explicit Graph(const std::vector<Node::Node> &nodes);
         ~Graph() = default;
         std::vector<Node::Node> getNodes() const override;
         std::vector<Node::Node> findAncestors(const std::vector<Node::Node> &nodes) const override;

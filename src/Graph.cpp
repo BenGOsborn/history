@@ -7,34 +7,41 @@
 
 namespace Graph
 {
-    Graph::Graph(std::vector<Node::Node> nodes) : nodes_(std::move(nodes))
+    Graph::Graph(const std::vector<Node::Node> &nodes)
     {
-        for (auto &node : nodes_)
+        maxNodeID_ = -1;
+        for (auto const &node : nodes)
         {
-            GraphNode graphNode{&node};
-            IDToNode_[node.id] = graphNode;
+            GraphNode graphNode{node};
+            nodes_[node.id] = graphNode;
+            maxNodeID_ = std::max(maxNodeID_, node.id);
         }
-
-        for (auto &node : nodes_)
+        maxNodeID_ += 1;
+        for (auto const &node : nodes)
         {
-            GraphNode &parentNode = IDToNode_[node.id];
+            GraphNode &parentNode = nodes_[node.id];
             for (auto &child : node.children)
             {
-                auto it = IDToNode_.find(child);
-                if (it == IDToNode_.end())
+                auto it = nodes_.find(child);
+                if (it == nodes_.end())
                 {
-                    throw std::runtime_error("child is missing");
+                    throw std::runtime_error("invalid child");
                 }
-                GraphNode &childNode = IDToNode_[child];
-                childNode.parents.push_back(&IDToNode_[node.id]);
-                parentNode.children.push_back(&IDToNode_[child]);
+                GraphNode &childNode = nodes_[child];
+                childNode.parents.push_back(&nodes_[node.id]);
+                parentNode.children.push_back(&nodes_[child]);
             }
         }
     }
 
     std::vector<Node::Node> Graph::getNodes() const
     {
-        return nodes_;
+        std::vector<Node::Node> out;
+        for (auto const &[key, val] : nodes_)
+        {
+            out.push_back(val.node);
+        }
+        return out;
     }
 
     std::vector<Node::Node> Graph::findAncestors(const std::vector<Node::Node> &nodes) const
@@ -44,8 +51,8 @@ namespace Graph
         std::vector<Node::Node> ancestors;
         for (auto const &node : nodes)
         {
-            auto it = IDToNode_.find(node.id);
-            if (it == IDToNode_.end())
+            auto it = nodes_.find(node.id);
+            if (it == nodes_.end())
             {
                 throw std::runtime_error("node does not exist");
             }
@@ -55,18 +62,13 @@ namespace Graph
         {
             auto graphNode = queue.front();
             queue.pop();
-            if (graphNode->node == nullptr)
-            {
-                throw std::runtime_error("invalid node has null data");
-            }
             auto node = graphNode->node;
-            int id = node->id;
-            if (seen.find(id) != seen.end())
+            if (seen.find(node.id) != seen.end())
             {
                 continue;
             }
-            seen.insert(id);
-            ancestors.push_back(*node);
+            seen.insert(node.id);
+            ancestors.push_back(node);
             for (auto const &parent : graphNode->parents)
             {
                 queue.push(parent);
@@ -82,8 +84,8 @@ namespace Graph
         std::vector<Node::Node> ancestors;
         for (auto const &node : nodes)
         {
-            auto it = IDToNode_.find(node.id);
-            if (it == IDToNode_.end())
+            auto it = nodes_.find(node.id);
+            if (it == nodes_.end())
             {
                 throw std::runtime_error("node does not exist");
             }
@@ -93,18 +95,13 @@ namespace Graph
         {
             auto graphNode = queue.front();
             queue.pop();
-            if (graphNode->node == nullptr)
-            {
-                throw std::runtime_error("invalid node has null data");
-            }
             auto node = graphNode->node;
-            int id = node->id;
-            if (seen.find(id) != seen.end())
+            if (seen.find(node.id) != seen.end())
             {
                 continue;
             }
-            seen.insert(id);
-            ancestors.push_back(*node);
+            seen.insert(node.id);
+            ancestors.push_back(node);
             for (auto const &child : graphNode->children)
             {
                 queue.push(child);
