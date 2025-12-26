@@ -19,7 +19,7 @@ namespace Data
         std::string filename_;
 
     public:
-        explicit File(std::string &filename);
+        explicit File(const std::string &filename);
         ~File() = default;
         std::vector<std::string> read() const override;
         void write(const std::vector<std::string> &lines) const override;

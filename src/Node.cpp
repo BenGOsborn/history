@@ -86,7 +86,7 @@ namespace Node
             dataframe[HEAD_ID].push_back(std::to_string(node.id));
             dataframe[HEAD_NAME].push_back(node.name);
             dataframe[HEAD_BIRTH].push_back(std::to_string(node.birth));
-            dataframe[HEAD_GENDER].push_back(std::to_string(static_cast<char>(node.gender)));
+            dataframe[HEAD_GENDER].push_back(std::string(1, static_cast<char>(node.gender)));
             dataframe[HEAD_CHILDREN].push_back(serializeVec(node.children));
         }
         return dataframe;

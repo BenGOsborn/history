@@ -85,7 +85,7 @@ namespace
 
 namespace Data
 {
-    File::File(std::string &filename) : filename_(filename)
+    File::File(const std::string &filename) : filename_(filename)
     {
     }
 

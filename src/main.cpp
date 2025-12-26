@@ -1,7 +1,8 @@
-#include <iostream>
 #include "Node.hpp"
 #include "Data.hpp"
+#include <iostream>
 #include <memory>
+#include <map>
 
 const std::string FILE_NAME = "example.csv";
 
@@ -32,6 +33,9 @@ int main()
     };
 
     std::unique_ptr<Data::IFile> file = std::make_unique<Data::File>(FILE_NAME);
+    std::unique_ptr<Data::IData> data = std::make_unique<Data::CSVData>(std::move(file));
+    auto dfOriginal = toDataframe(nodes);
+    data->write(dfOriginal);
 
     return 0;
 }
