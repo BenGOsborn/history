@@ -11,7 +11,8 @@ namespace Graph
         virtual ~IGraph() = default;
         virtual std::vector<Node::Node> getNodes() const = 0;
         // TODO - add descendents and also return the values using levels which can then easily be rendered
-        virtual std::vector<Node::Node> findAncestors(const std::vector<Node::Node> &children) const = 0;
+        virtual std::vector<Node::Node> findAncestors(const std::vector<Node::Node> &nodes) const = 0;
+        virtual std::vector<Node::Node> findDescendents(const std::vector<Node::Node> &nodes) const = 0;
     };
 
     class Graph : public IGraph
@@ -20,6 +21,7 @@ namespace Graph
         {
             Node::Node *node;
             std::vector<GraphNode *> parents;
+            std::vector<GraphNode *> children;
         };
 
         std::vector<Node::Node> nodes_;
@@ -29,6 +31,7 @@ namespace Graph
         explicit Graph(std::vector<Node::Node> nodes);
         ~Graph() = default;
         std::vector<Node::Node> getNodes() const override;
-        std::vector<Node::Node> findAncestors(const std::vector<Node::Node> &children) const override;
+        std::vector<Node::Node> findAncestors(const std::vector<Node::Node> &nodes) const override;
+        std::vector<Node::Node> findDescendents(const std::vector<Node::Node> &nodes) const override;
     };
 }

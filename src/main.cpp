@@ -34,12 +34,12 @@ int main()
         },
     };
     std::unique_ptr<Data::IFile> file = std::make_unique<Data::File>(FILE_NAME);
-    std::unique_ptr<Data::IData> data = std::make_unique<Data::CSVData>(std::move(file));
+    Data::CSVData data(std::move(file));
 
     auto dfOriginal = Node::toDataframe(nodes);
-    data->write(dfOriginal);
+    data.write(dfOriginal);
 
-    auto dfNew = data->read();
+    auto dfNew = data.read();
     auto nodesNew = Node::fromDataframe(dfNew);
     std::cout << "Read nodes" << std::endl;
     for (auto const &node : nodesNew)
@@ -47,10 +47,18 @@ int main()
         std::cout << node << std::endl;
     }
 
-    std::cout << "Ancestors" << std::endl;
     Graph::Graph graph(std::move(nodesNew));
+
+    std::cout << "Ancestors" << std::endl;
     auto ancestors = graph.findAncestors({nodes[0]});
     for (auto const &node : ancestors)
+    {
+        std::cout << node << std::endl;
+    }
+
+    std::cout << "Descendents" << std::endl;
+    auto descendents = graph.findDescendents({nodes[1]});
+    for (auto const &node : descendents)
     {
         std::cout << node << std::endl;
     }
