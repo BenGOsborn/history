@@ -19,7 +19,7 @@ namespace
         std::string out;
         for (int i = 0; i < vec.size(); i++)
         {
-            out += std::to_string(vec.at(i));
+            out += std::to_string(vec[i]);
             if (i != vec.size() - 1)
             {
                 out += DELIM;
@@ -52,7 +52,7 @@ namespace
         {
             throw std::runtime_error("row exceeds bounds");
         }
-        auto &ref = vec.at(row);
+        auto &ref = vec[row];
         return ref;
     }
 }
@@ -66,7 +66,7 @@ namespace Node
             throw std::invalid_argument("invalid gender size");
         }
 
-        char c = s.at(0);
+        char c = s[0];
         switch (c)
         {
         case 'm':
@@ -107,7 +107,7 @@ namespace Node
             auto birth = getRowColumn(dataframe, HEAD_BIRTH, i);
             auto gender = getRowColumn(dataframe, HEAD_GENDER, i);
             auto children = getRowColumn(dataframe, HEAD_CHILDREN, i);
-            auto &node = nodes.at(i);
+            auto &node = nodes[i];
             node.id = std::stoi(id);
             node.name = name;
             node.birth = static_cast<std::time_t>(std::stol(birth));

@@ -8,6 +8,7 @@ add_executable(app
     src/main.cpp
     src/Data.cpp
     src/Node.cpp
+    src/Graph.cpp
 )
 
 target_include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

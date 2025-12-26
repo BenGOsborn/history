@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <algorithm>
+#include <utility>
 
 namespace
 {
@@ -73,7 +74,7 @@ namespace
         std::string out;
         for (int i = 0; i < columns.size(); i++)
         {
-            out += escapeString(columns.at(i));
+            out += escapeString(columns[i]);
             if (i != columns.size() - 1)
             {
                 out += DELIM;
@@ -135,17 +136,17 @@ namespace Data
             throw std::runtime_error("file must have at least one row");
         }
         std::map<std::string, std::vector<std::string>> data;
-        auto header = deserializeRow(rows.at(0));
+        auto header = deserializeRow(rows[0]);
         for (int i = 1; i < rows.size(); i++)
         {
-            auto columns = deserializeRow(rows.at(i));
+            auto columns = deserializeRow(rows[i]);
             if (columns.size() != header.size())
             {
                 throw std::runtime_error("row size does not match header size");
             }
             for (int i = 0; i < columns.size(); i++)
             {
-                data[header.at(i)].push_back(columns.at(i));
+                data[header[i]].push_back(columns[i]);
             }
         }
         return data;
@@ -176,7 +177,7 @@ namespace Data
                 {
                     throw std::runtime_error("invalid sized column");
                 }
-                row.push_back(col.at(i));
+                row.push_back(col[i]);
             }
             columns.push_back(serializeRow(row));
         }

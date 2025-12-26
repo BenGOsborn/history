@@ -1,8 +1,10 @@
 #include "Node.hpp"
 #include "Data.hpp"
+#include "Graph.hpp"
 #include <iostream>
 #include <memory>
 #include <map>
+#include <utility>
 
 const std::string FILE_NAME = "example.csv";
 
@@ -39,7 +41,16 @@ int main()
 
     auto dfNew = data->read();
     auto nodesNew = Node::fromDataframe(dfNew);
+    std::cout << "Read nodes" << std::endl;
     for (auto const &node : nodesNew)
+    {
+        std::cout << node << std::endl;
+    }
+
+    std::cout << "Ancestors" << std::endl;
+    Graph::Graph graph(std::move(nodesNew));
+    auto ancestors = graph.findAncestors({nodes[0]});
+    for (auto const &node : ancestors)
     {
         std::cout << node << std::endl;
     }
