@@ -1,68 +1,119 @@
 #include "Node.hpp"
+#include <map>
+#include <sstream>
+#include <string>
+#include <chrono>
 
-const char DELIM = ',';
-const char ESCAPE = '\\';
-
-std::string escapeString(const std::string &str) noexcept
+namespace
 {
-    std::string escaped;
-    for (const char &c : str)
+    static const char DELIM = ',';
+
+    static const std::string HEAD_ID = "id";
+    static const std::string HEAD_NAME = "name";
+    static const std::string HEAD_BIRTH = "birth";
+    static const std::string HEAD_GENDER = "gender";
+    static const std::string HEAD_CHILDREN = "children";
+
+    std::string serializeVec(const std::vector<int> &vec) noexcept
     {
-        if (c == ESCAPE)
+        std::string out;
+        for (int i = 0; i < vec.size(); i++)
         {
-            escaped += ESCAPE;
+            out += std::to_string(vec.at(i));
+            if (i != vec.size() - 1)
+            {
+                out += DELIM;
+            }
         }
-        escaped += c;
+        return out;
     }
-    std::string out;
-    for (const char &c : escaped)
+
+    std::vector<int> deserializeVec(const std::string &serialized)
     {
-        if (c == DELIM)
+        std::vector<int> out;
+        std::string token;
+        std::stringstream ss(serialized);
+        while (std::getline(ss, token, DELIM))
         {
-            out += ESCAPE;
+            out.push_back(std::stoi(token));
         }
-        out += c;
+        return out;
     }
-    return out;
+
+    const std::string &getRowColumn(const std::map<std::string, std::vector<std::string>> &dataframe, const std::string &col, const int &row)
+    {
+        auto it = dataframe.find(col);
+        if (it == dataframe.end())
+        {
+            throw std::runtime_error("column is missing");
+        }
+        auto &vec = it->second;
+        if (row >= vec.size() || row < 0)
+        {
+            throw std::runtime_error("row exceeds bounds");
+        }
+        auto &ref = vec.at(row);
+        return ref;
+    }
 }
 
-template <typename T>
-std::string serializeVec(const std::vector<T> vec) noexcept
+namespace Node
 {
-    std::string out;
-    for (int i = 0; i < vec.size(); i++)
+    Gender parseGender(const std::string &s)
     {
-        out += std::to_string(vec.at(i));
-        if (i != vec.size() - 1)
+        if (s.size() != 1)
         {
-            out += DELIM;
+            throw std::invalid_argument("invalid gender size");
+        }
+
+        char c = s.at(0);
+        switch (c)
+        {
+        case 'm':
+            return Gender::Male;
+        case 'f':
+            return Gender::Female;
+        default:
+            throw std::invalid_argument("invalid gender");
         }
     }
-    return out;
-}
 
-std::vector<std::string> buildColumns(const Node &node) noexcept
-{
-    std::vector<std::string> out;
-    out.push_back(std::to_string(node.id));
-    out.push_back(escapeString(node.name));
-    out.push_back(std::to_string(node.birth));
-    out.push_back(std::to_string(static_cast<char>(node.gender)));
-    out.push_back(escapeString(serializeVec(node.parents)));
-    out.push_back(escapeString(serializeVec(node.children)));
-    return out;
-}
-
-std::ostream &operator<<(std::ostream &os, const Node &node)
-{
-    std::vector<std::string> columns = buildColumns(node);
-    for (int i = 0; i < columns.size(); i++)
+    std::map<std::string, std::vector<std::string>> toDataframe(const std::vector<Node> &nodes) noexcept
     {
-        os << columns.at(i);
-        if (i != columns.size() - 1)
+        std::map<std::string, std::vector<std::string>> dataframe;
+        for (auto const &node : nodes)
         {
-            os << DELIM;
+            dataframe[HEAD_ID].push_back(std::to_string(node.id));
+            dataframe[HEAD_NAME].push_back(node.name);
+            dataframe[HEAD_BIRTH].push_back(std::to_string(node.birth));
+            dataframe[HEAD_GENDER].push_back(std::to_string(static_cast<char>(node.gender)));
+            dataframe[HEAD_CHILDREN].push_back(serializeVec(node.children));
         }
+        return dataframe;
     }
-    return os;
+
+    std::vector<Node> fromDataframe(const std::map<std::string, std::vector<std::string>> &dataframe) noexcept
+    {
+        size_t rows = 0;
+        for (auto const &[key, val] : dataframe)
+        {
+            rows = std::max(rows, val.size());
+        }
+        std::vector<Node> nodes(rows);
+        for (int i = 0; i < nodes.size(); i++)
+        {
+            auto id = getRowColumn(dataframe, HEAD_ID, i);
+            auto name = getRowColumn(dataframe, HEAD_NAME, i);
+            auto birth = getRowColumn(dataframe, HEAD_BIRTH, i);
+            auto gender = getRowColumn(dataframe, HEAD_GENDER, i);
+            auto children = getRowColumn(dataframe, HEAD_CHILDREN, i);
+            auto &node = nodes.at(i);
+            node.id = std::stoi(id);
+            node.name = name;
+            node.birth = static_cast<std::time_t>(std::stol(birth));
+            node.gender = parseGender(gender);
+            node.children = deserializeVec(children);
+        }
+        return nodes;
+    }
 }

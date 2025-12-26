@@ -1,9 +1,12 @@
 #pragma once
 #include "Node.hpp"
 
-struct GraphNode
+namespace Graph
 {
-    Node *node;
-    std::vector<Node *> parents;
-    std::vector<Node *> children;
-};
+    struct GraphNode
+    {
+        Node::Node *node;
+        std::vector<Node::Node *> parents;
+        std::vector<Node::Node *> children;
+    };
+}
