@@ -26,4 +26,6 @@ namespace Node
     std::map<std::string, std::vector<std::string>> toDataframe(const std::vector<Node> &nodes) noexcept;
 
     std::vector<Node> fromDataframe(const std::map<std::string, std::vector<std::string>> &dataframe) noexcept;
+
+    std::ostream &operator<<(std::ostream &os, const Node &node);
 }

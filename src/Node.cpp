@@ -116,4 +116,15 @@ namespace Node
         }
         return nodes;
     }
+
+    std::ostream &operator<<(std::ostream &os, const Node &node)
+    {
+        auto id = std::to_string(node.id);
+        auto name = node.name;
+        auto birth = std::to_string(node.birth);
+        auto gender = std::string(1, static_cast<char>(node.gender));
+        auto children = serializeVec(node.children);
+        os << "Node(" + id + DELIM + name + DELIM + birth + DELIM + gender + DELIM + "(" + serializeVec(node.children) + "))";
+        return os;
+    }
 }
