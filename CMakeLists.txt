@@ -5,9 +5,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(app
-    main.cpp
-    Data.cpp
-    Node.cpp
+    src/main.cpp
+    src/Data.cpp
+    src/Node.cpp
 )
 
-target_include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

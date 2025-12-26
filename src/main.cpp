@@ -34,8 +34,8 @@ int main()
     std::unique_ptr<Data::IFile> file = std::make_unique<Data::File>(FILE_NAME);
     std::unique_ptr<Data::IData> data = std::make_unique<Data::CSVData>(std::move(file));
 
-    // auto dfOriginal = Node::toDataframe(nodes);
-    // data->write(dfOriginal);
+    auto dfOriginal = Node::toDataframe(nodes);
+    data->write(dfOriginal);
 
     auto dfNew = data->read();
     auto nodesNew = Node::fromDataframe(dfNew);
