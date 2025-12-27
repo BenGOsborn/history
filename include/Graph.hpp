@@ -11,7 +11,7 @@ namespace Graph
         Node::Node node;
         int x;
         int y;
-        std::vector<DisplayNode *> edges;
+        std::vector<DisplayNode> edges;
     };
 
     std::ostream &operator<<(std::ostream &os, const DisplayNode &displayNode);

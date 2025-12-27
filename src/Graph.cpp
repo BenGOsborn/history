@@ -7,20 +7,29 @@
 #include <algorithm>
 #include <utility>
 #include <set>
+#include <cwchar>
 
 namespace
 {
-    static const std::string PIPE_DOWN = "│";
-    static const std::string PIPE_HORIZONTAL = "─";
-    static const std::string PIPE_RIGHT_JUNCTION = "├";
-    static const std::string PIPE_DOWN_JUNCTION = "┬";
-    static const std::string PIPE_CORNER = "┐";
+    static const std::string PIPE_DOWN = "|";
+    static const std::string PIPE_HORIZONTAL = "-";
+
+    std::string padString(const std::string &str, const int &size, const std::string &token)
+    {
+        auto out = str;
+        while (out.size() < size)
+        {
+            out += token;
+        }
+        return out;
+    }
 }
 
 namespace
 {
     static const int ROW_COUNT = 3;
     static const int PIPE_ROW_COUNT = 3;
+    static const int PADDING = 3;
 }
 
 namespace Graph
@@ -45,7 +54,6 @@ namespace Graph
         std::vector<std::vector<std::string>> grid(height, std::vector<std::string>(width, " "));
         for (auto const &displayNode : displayNodes)
         {
-            // **** Now we just need to do some special stuff in here (i.e. padding) to print the edges
             auto node = displayNode.node;
             std::string id = "ID = " + std::to_string(node.id);
             std::string name = "Name = " + node.name;
@@ -58,6 +66,37 @@ namespace Graph
             grid[yOffset][displayNode.x] = id;
             grid[yOffset + 1][displayNode.x] = name;
             grid[yOffset + 2][displayNode.x] = dob;
+            if (displayNode.edges.size() == 0)
+            {
+                continue;
+            }
+            grid[yOffset + 3][displayNode.x] = PIPE_DOWN;
+            if (displayNode.edges.size() == 1)
+            {
+                grid[yOffset + 4][displayNode.x] = PIPE_DOWN;
+                grid[yOffset + 5][displayNode.x] = PIPE_DOWN;
+            }
+            auto endX = displayNode.x;
+            for (int i = 0; i < displayNode.edges.size(); i++)
+            {
+                auto &edge = displayNode.edges[i];
+                auto val = PIPE_HORIZONTAL;
+                if (i == displayNode.edges.size() - 1)
+                {
+                    val = PIPE_DOWN;
+                }
+                grid[yOffset + 4][edge.x] = val;
+                grid[yOffset + 5][edge.x] = PIPE_DOWN;
+                endX = std::max(endX, edge.x);
+            }
+            for (int x = displayNode.x; x < endX + 1; x++)
+            {
+                auto val = grid[yOffset + 4][x];
+                if (val == " ")
+                {
+                    grid[yOffset + 4][x] = PIPE_HORIZONTAL;
+                }
+            }
         }
         size_t colWidth = 0;
         for (auto const &row : grid)
@@ -71,7 +110,12 @@ namespace Graph
         {
             for (auto const &col : row)
             {
-                os << std::left << std::setw(colWidth + 1) << col;
+                std::string token = " ";
+                if (col == PIPE_HORIZONTAL)
+                {
+                    token = PIPE_HORIZONTAL;
+                }
+                os << padString(col, colWidth + PADDING, token);
             }
             os << std::endl;
         }
@@ -131,13 +175,13 @@ namespace Graph
         {
             relationships = it->second;
         }
-        std::vector<DisplayNode *> edges;
+        std::vector<DisplayNode> edges;
         for (auto const &relation : relationships)
         {
             auto edge = findRelationshipRecurse(relation, seen, x, y + 1, out, relationship);
             if (edge != nullptr)
             {
-                edges.push_back(edge);
+                edges.push_back(*edge);
             }
         }
         out.emplace_back(node, startX, y, edges);
