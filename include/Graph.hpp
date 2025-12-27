@@ -15,13 +15,17 @@ namespace Graph
 
     std::ostream &operator<<(std::ostream &os, const DisplayNode &displayNode);
 
+    using DisplayNodes = std::vector<DisplayNode>;
+
+    std::ostream &operator<<(std::ostream &os, const DisplayNodes &displayNodes);
+
     class IGraph
     {
     public:
         virtual ~IGraph() = default;
         virtual std::vector<Node::Node> getNodes() const = 0;
-        virtual std::vector<DisplayNode> findAncestors(const std::vector<Node::Node> &nodes) const = 0;
-        virtual std::vector<DisplayNode> findDescendents(const std::vector<Node::Node> &nodes) const = 0;
+        virtual DisplayNodes findAncestors(const std::vector<Node::Node> &nodes) const = 0;
+        virtual DisplayNodes findDescendents(const std::vector<Node::Node> &nodes) const = 0;
     };
 
     class Graph : public IGraph
@@ -41,13 +45,13 @@ namespace Graph
         std::map<int, GraphNode> nodes_;
 
         void findRelationshipRecurse(const GraphNode *graphNode, std::set<int> &seen, int &x, const int y, std::vector<DisplayNode> &out, const Relationship relationship) const;
-        std::vector<DisplayNode> findRelationship(const std::vector<Node::Node> &nodes, const Relationship relationship) const;
+        DisplayNodes findRelationship(const std::vector<Node::Node> &nodes, const Relationship relationship) const;
 
     public:
         explicit Graph(const std::vector<Node::Node> &nodes);
         ~Graph() = default;
         std::vector<Node::Node> getNodes() const override;
-        std::vector<DisplayNode> findAncestors(const std::vector<Node::Node> &nodes) const override;
-        std::vector<DisplayNode> findDescendents(const std::vector<Node::Node> &nodes) const override;
+        DisplayNodes findAncestors(const std::vector<Node::Node> &nodes) const override;
+        DisplayNodes findDescendents(const std::vector<Node::Node> &nodes) const override;
     };
 }
