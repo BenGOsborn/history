@@ -1,22 +1,23 @@
 #include "Graph.hpp"
 #include "Node.hpp"
-#include <algorithm>
+#include <iostream>
 #include <utility>
-#include <queue>
 #include <set>
 
 namespace Graph
 {
+    std::ostream &operator<<(std::ostream &os, const DisplayNode &displayNode)
+    {
+        return os << "DisplayNode(" << displayNode.x << "," << displayNode.y << "," << displayNode.node << ")";
+    }
+
     Graph::Graph(const std::vector<Node::Node> &nodes)
     {
-        maxNodeID_ = -1;
         for (auto const &node : nodes)
         {
             GraphNode graphNode{node};
             nodes_[node.id] = graphNode;
-            maxNodeID_ = std::max(maxNodeID_, node.id);
         }
-        maxNodeID_ += 1;
         for (auto const &node : nodes)
         {
             GraphNode &parentNode = nodes_[node.id];
@@ -28,8 +29,8 @@ namespace Graph
                     throw std::runtime_error("invalid child");
                 }
                 GraphNode &childNode = nodes_[child];
-                childNode.parents.push_back(&nodes_[node.id]);
-                parentNode.children.push_back(&nodes_[child]);
+                childNode.relationships[Relationship::Parent].push_back(&nodes_[node.id]);
+                parentNode.relationships[Relationship::Child].push_back(&nodes_[child]);
             }
         }
     }
@@ -44,44 +45,42 @@ namespace Graph
         return out;
     }
 
-    std::vector<Node::Node> Graph::findAncestors(const std::vector<Node::Node> &nodes) const
+    void Graph::findRelationshipRecurse(const GraphNode *graphNode, std::set<int> &seen, int &x, const int y, std::vector<DisplayNode> &out, Relationship relationship) const
     {
-        std::set<int> seen;
-        std::queue<const GraphNode *> queue;
-        std::vector<Node::Node> ancestors;
-        for (auto const &node : nodes)
+        if (graphNode == nullptr)
         {
-            auto it = nodes_.find(node.id);
-            if (it == nodes_.end())
-            {
-                throw std::runtime_error("node does not exist");
-            }
-            queue.push(&it->second);
+            throw std::runtime_error("encounted nullptr node");
         }
-        while (!queue.empty())
+        auto node = graphNode->node;
+        if (seen.find(node.id) != seen.end())
         {
-            auto graphNode = queue.front();
-            queue.pop();
-            auto node = graphNode->node;
-            if (seen.find(node.id) != seen.end())
-            {
-                continue;
-            }
-            seen.insert(node.id);
-            ancestors.push_back(node);
-            for (auto const &parent : graphNode->parents)
-            {
-                queue.push(parent);
-            }
+            return;
         }
-        return ancestors;
+        seen.insert(node.id);
+        auto startX = x;
+        std::vector<GraphNode *> relationships;
+        auto it = graphNode->relationships.find(relationship);
+        if (it != graphNode->relationships.end())
+        {
+            relationships = it->second;
+        }
+        for (auto const &relation : relationships)
+        {
+            findRelationshipRecurse(relation, seen, x, y + 1, out, relationship);
+        }
+        DisplayNode displayNode{node, startX, y};
+        out.push_back(displayNode);
+        if (relationships.size() == 0)
+        {
+            x++;
+        }
     }
 
-    std::vector<Node::Node> Graph::findDescendents(const std::vector<Node::Node> &nodes) const
+    std::vector<DisplayNode> Graph::findRelationship(const std::vector<Node::Node> &nodes, const Relationship relationship) const
     {
         std::set<int> seen;
-        std::queue<const GraphNode *> queue;
-        std::vector<Node::Node> ancestors;
+        std::vector<DisplayNode> out;
+        int x = 0;
         for (auto const &node : nodes)
         {
             auto it = nodes_.find(node.id);
@@ -89,24 +88,18 @@ namespace Graph
             {
                 throw std::runtime_error("node does not exist");
             }
-            queue.push(&it->second);
+            findRelationshipRecurse(&it->second, seen, x, 0, out, relationship);
         }
-        while (!queue.empty())
-        {
-            auto graphNode = queue.front();
-            queue.pop();
-            auto node = graphNode->node;
-            if (seen.find(node.id) != seen.end())
-            {
-                continue;
-            }
-            seen.insert(node.id);
-            ancestors.push_back(node);
-            for (auto const &child : graphNode->children)
-            {
-                queue.push(child);
-            }
-        }
-        return ancestors;
+        return out;
+    }
+
+    std::vector<DisplayNode> Graph::findAncestors(const std::vector<Node::Node> &nodes) const
+    {
+        return findRelationship(nodes, Relationship::Parent);
+    }
+
+    std::vector<DisplayNode> Graph::findDescendents(const std::vector<Node::Node> &nodes) const
+    {
+        return findRelationship(nodes, Relationship::Child);
     }
 }

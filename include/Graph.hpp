@@ -2,36 +2,52 @@
 #include "Node.hpp"
 #include <vector>
 #include <map>
+#include <set>
 
 namespace Graph
 {
+    struct DisplayNode
+    {
+        Node::Node node;
+        int x;
+        int y;
+    };
+
+    std::ostream &operator<<(std::ostream &os, const DisplayNode &displayNode);
+
     class IGraph
     {
     public:
         virtual ~IGraph() = default;
         virtual std::vector<Node::Node> getNodes() const = 0;
-        // TODO - add descendents and also return the values using levels which can then easily be rendered
-        virtual std::vector<Node::Node> findAncestors(const std::vector<Node::Node> &nodes) const = 0;
-        virtual std::vector<Node::Node> findDescendents(const std::vector<Node::Node> &nodes) const = 0;
+        virtual std::vector<DisplayNode> findAncestors(const std::vector<Node::Node> &nodes) const = 0;
+        virtual std::vector<DisplayNode> findDescendents(const std::vector<Node::Node> &nodes) const = 0;
     };
 
     class Graph : public IGraph
     {
+        enum Relationship
+        {
+            Parent,
+            Child,
+        };
+
         struct GraphNode
         {
             Node::Node node;
-            std::vector<GraphNode *> parents;
-            std::vector<GraphNode *> children;
+            std::map<Relationship, std::vector<GraphNode *>> relationships;
         };
 
         std::map<int, GraphNode> nodes_;
-        int maxNodeID_;
+
+        void findRelationshipRecurse(const GraphNode *graphNode, std::set<int> &seen, int &x, const int y, std::vector<DisplayNode> &out, const Relationship relationship) const;
+        std::vector<DisplayNode> findRelationship(const std::vector<Node::Node> &nodes, const Relationship relationship) const;
 
     public:
         explicit Graph(const std::vector<Node::Node> &nodes);
         ~Graph() = default;
         std::vector<Node::Node> getNodes() const override;
-        std::vector<Node::Node> findAncestors(const std::vector<Node::Node> &nodes) const override;
-        std::vector<Node::Node> findDescendents(const std::vector<Node::Node> &nodes) const override;
+        std::vector<DisplayNode> findAncestors(const std::vector<Node::Node> &nodes) const override;
+        std::vector<DisplayNode> findDescendents(const std::vector<Node::Node> &nodes) const override;
     };
 }

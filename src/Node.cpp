@@ -124,7 +124,6 @@ namespace Node
         auto birth = std::to_string(node.birth);
         auto gender = std::string(1, static_cast<char>(node.gender));
         auto children = serializeVec(node.children);
-        os << "Node(" + id + DELIM + name + DELIM + birth + DELIM + gender + DELIM + "(" + serializeVec(node.children) + "))";
-        return os;
+        return os << "Node(" + id + "," + name + "," + birth + "," + gender + "," + "(" + serializeVec(node.children) + "))";
     }
 }
