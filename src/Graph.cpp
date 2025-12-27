@@ -11,6 +11,10 @@
 
 namespace
 {
+    static const int ROW_COUNT = 3;
+    static const int PIPE_ROW_COUNT = 3;
+    static const int PADDING = 3;
+    static const std::string EMPTY = " ";
     static const std::string PIPE_DOWN = "|";
     static const std::string PIPE_HORIZONTAL = "-";
 
@@ -23,13 +27,56 @@ namespace
         }
         return out;
     }
-}
 
-namespace
-{
-    static const int ROW_COUNT = 3;
-    static const int PIPE_ROW_COUNT = 3;
-    static const int PADDING = 3;
+    enum TileType
+    {
+        Empty,
+        NoRepeat,
+        Repeat,
+    };
+
+    struct Tile
+    {
+        TileType tileType;
+        std::string val;
+    };
+
+    std::string render(const std::vector<std::vector<Tile>> &grid)
+    {
+        size_t colWidth = 1;
+        for (auto const &row : grid)
+        {
+            for (auto const &col : row)
+            {
+                colWidth = std::max(colWidth, col.val.size());
+            }
+        }
+        std::string out;
+        for (auto const &row : grid)
+        {
+            for (auto const &col : row)
+            {
+                int padSize = colWidth + PADDING;
+                if (col.tileType == TileType::Repeat)
+                {
+                    out += padString(col.val, padSize, col.val);
+                    continue;
+                }
+                out += padString(col.val, colWidth + PADDING, EMPTY);
+            }
+            out += '\n';
+        }
+        return out;
+    }
+
+    std::string parseDOB(const time_t &time)
+    {
+        std::tm tm = *std::localtime(&time);
+        std::ostringstream oss;
+        oss << std::put_time(&tm, "%d/%m/%Y");
+        std::string date = oss.str();
+        return date;
+    }
 }
 
 namespace Graph
@@ -37,6 +84,55 @@ namespace Graph
     std::ostream &operator<<(std::ostream &os, const DisplayNode &displayNode)
     {
         return os << "DisplayNode(" << displayNode.x << "," << displayNode.y << "," << displayNode.node << ")";
+    }
+
+    void drawEdges(std::vector<std::vector<Tile>> &grid, const std::vector<DisplayNode> &edges, const int &x, const int &edgeOffset)
+    {
+        if (edges.size() == 0)
+        {
+            return;
+        }
+        grid[edgeOffset][x] = Tile{TileType::NoRepeat, PIPE_DOWN};
+        if (edges.size() == 1)
+        {
+            grid[edgeOffset + 1][x] = Tile{TileType::NoRepeat, PIPE_DOWN};
+            grid[edgeOffset + 2][x] = Tile{TileType::NoRepeat, PIPE_DOWN};
+            return;
+        }
+        auto endX = x;
+        for (int i = 0; i < edges.size(); i++)
+        {
+            auto &edge = edges[i];
+            Tile tile{TileType::Repeat, PIPE_HORIZONTAL};
+            if (i == edges.size() - 1)
+            {
+                tile = Tile{TileType::NoRepeat, PIPE_DOWN};
+            }
+            grid[edgeOffset + 1][edge.x] = tile;
+            grid[edgeOffset + 2][edge.x] = Tile{TileType::NoRepeat, PIPE_DOWN};
+            endX = std::max(endX, edge.x);
+        }
+        for (int i = x; i < endX + 1; i++)
+        {
+            auto val = grid[edgeOffset + 1][i];
+            if (val.tileType == TileType::Empty)
+            {
+                grid[edgeOffset + 1][i] = Tile{TileType::Repeat, PIPE_HORIZONTAL};
+            }
+        }
+    }
+
+    void drawNode(std::vector<std::vector<Tile>> &grid, const DisplayNode &displayNode, const int &rowSize)
+    {
+        auto node = displayNode.node;
+        std::string id = "ID = " + std::to_string(node.id);
+        std::string name = "Name = " + node.name;
+        std::string dob = "Date of birth = " + parseDOB(node.birth);
+        int yOffset = displayNode.y * rowSize;
+        grid[yOffset][displayNode.x] = Tile{TileType::NoRepeat, id};
+        grid[yOffset + 1][displayNode.x] = Tile{TileType::NoRepeat, name};
+        grid[yOffset + 2][displayNode.x] = Tile{TileType::NoRepeat, dob};
+        drawEdges(grid, displayNode.edges, displayNode.x, yOffset + 3);
     }
 
     std::ostream &operator<<(std::ostream &os, const DisplayNodes &displayNodes)
@@ -51,75 +147,13 @@ namespace Graph
         // Because the coordinates are 0-indexed
         height = ((height + 1) * ROW_COUNT) + (height * PIPE_ROW_COUNT);
         width += 1;
-        std::vector<std::vector<std::string>> grid(height, std::vector<std::string>(width, " "));
+        std::vector<std::vector<Tile>> grid(height, std::vector<Tile>(width, {TileType::Empty, EMPTY}));
         for (auto const &displayNode : displayNodes)
         {
-            auto node = displayNode.node;
-            std::string id = "ID = " + std::to_string(node.id);
-            std::string name = "Name = " + node.name;
-            std::tm tm = *std::localtime(&node.birth);
-            std::ostringstream oss;
-            oss << std::put_time(&tm, "%d/%m/%Y");
-            std::string date = oss.str();
-            std::string dob = "Date of birth = " + date;
-            int yOffset = displayNode.y * (ROW_COUNT + PIPE_ROW_COUNT);
-            grid[yOffset][displayNode.x] = id;
-            grid[yOffset + 1][displayNode.x] = name;
-            grid[yOffset + 2][displayNode.x] = dob;
-            if (displayNode.edges.size() == 0)
-            {
-                continue;
-            }
-            grid[yOffset + 3][displayNode.x] = PIPE_DOWN;
-            if (displayNode.edges.size() == 1)
-            {
-                grid[yOffset + 4][displayNode.x] = PIPE_DOWN;
-                grid[yOffset + 5][displayNode.x] = PIPE_DOWN;
-            }
-            auto endX = displayNode.x;
-            for (int i = 0; i < displayNode.edges.size(); i++)
-            {
-                auto &edge = displayNode.edges[i];
-                auto val = PIPE_HORIZONTAL;
-                if (i == displayNode.edges.size() - 1)
-                {
-                    val = PIPE_DOWN;
-                }
-                grid[yOffset + 4][edge.x] = val;
-                grid[yOffset + 5][edge.x] = PIPE_DOWN;
-                endX = std::max(endX, edge.x);
-            }
-            for (int x = displayNode.x; x < endX + 1; x++)
-            {
-                auto val = grid[yOffset + 4][x];
-                if (val == " ")
-                {
-                    grid[yOffset + 4][x] = PIPE_HORIZONTAL;
-                }
-            }
+            drawNode(grid, displayNode, ROW_COUNT + PIPE_ROW_COUNT);
         }
-        size_t colWidth = 0;
-        for (auto const &row : grid)
-        {
-            for (auto const &col : row)
-            {
-                colWidth = std::max(colWidth, col.size());
-            }
-        }
-        for (auto const &row : grid)
-        {
-            for (auto const &col : row)
-            {
-                std::string token = " ";
-                if (col == PIPE_HORIZONTAL)
-                {
-                    token = PIPE_HORIZONTAL;
-                }
-                os << padString(col, colWidth + PADDING, token);
-            }
-            os << std::endl;
-        }
-        return os;
+        auto out = render(grid);
+        return os << out;
     }
 
     Graph::Graph(const std::vector<Node::Node> &nodes)
