@@ -1,11 +1,27 @@
 #include "Graph.hpp"
 #include "Node.hpp"
+#include <ctime>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
 #include <utility>
 #include <set>
+
+namespace
+{
+    static const std::string PIPE_DOWN = "│";
+    static const std::string PIPE_HORIZONTAL = "─";
+    static const std::string PIPE_RIGHT_JUNCTION = "├";
+    static const std::string PIPE_DOWN_JUNCTION = "┬";
+    static const std::string PIPE_CORNER = "┐";
+}
+
+namespace
+{
+    static const int ROW_COUNT = 3;
+    static const int PIPE_ROW_COUNT = 3;
+}
 
 namespace Graph
 {
@@ -24,16 +40,32 @@ namespace Graph
             width = std::max(width, displayNode.x);
         }
         // Because the coordinates are 0-indexed
-        height += 1;
+        height = ((height + 1) * ROW_COUNT) + (height * PIPE_ROW_COUNT);
         width += 1;
         std::vector<std::vector<std::string>> grid(height, std::vector<std::string>(width, " "));
-        size_t colWidth = 0;
         for (auto const &displayNode : displayNodes)
         {
             // **** Now we just need to do some special stuff in here (i.e. padding) to print the edges
-            std::string val = "(" + std::to_string(displayNode.node.id) + ") " + displayNode.node.name;
-            grid[displayNode.y][displayNode.x] = val;
-            colWidth = std::max(colWidth, val.size());
+            auto node = displayNode.node;
+            std::string id = "ID = " + std::to_string(node.id);
+            std::string name = "Name = " + node.name;
+            std::tm tm = *std::localtime(&node.birth);
+            std::ostringstream oss;
+            oss << std::put_time(&tm, "%d/%m/%Y");
+            std::string date = oss.str();
+            std::string dob = "Date of birth = " + date;
+            int yOffset = displayNode.y * (ROW_COUNT + PIPE_ROW_COUNT);
+            grid[yOffset][displayNode.x] = id;
+            grid[yOffset + 1][displayNode.x] = name;
+            grid[yOffset + 2][displayNode.x] = dob;
+        }
+        size_t colWidth = 0;
+        for (auto const &row : grid)
+        {
+            for (auto const &col : row)
+            {
+                colWidth = std::max(colWidth, col.size());
+            }
         }
         for (auto const &row : grid)
         {
