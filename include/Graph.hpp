@@ -11,6 +11,7 @@ namespace Graph
         Node::Node node;
         int x;
         int y;
+        std::vector<DisplayNode *> edges;
     };
 
     std::ostream &operator<<(std::ostream &os, const DisplayNode &displayNode);
@@ -44,7 +45,7 @@ namespace Graph
 
         std::map<int, GraphNode> nodes_;
 
-        void findRelationshipRecurse(const GraphNode *graphNode, std::set<int> &seen, int &x, const int y, std::vector<DisplayNode> &out, const Relationship relationship) const;
+        DisplayNode *findRelationshipRecurse(const GraphNode *graphNode, std::set<int> &seen, int &x, const int y, std::vector<DisplayNode> &out, const Relationship relationship) const;
         DisplayNodes findRelationship(const std::vector<Node::Node> &nodes, const Relationship relationship) const;
 
     public:

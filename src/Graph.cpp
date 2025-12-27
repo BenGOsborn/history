@@ -30,6 +30,7 @@ namespace Graph
         size_t colWidth = 0;
         for (auto const &displayNode : displayNodes)
         {
+            // **** Now we just need to do some special stuff in here (i.e. padding) to print the edges
             std::string val = "(" + std::to_string(displayNode.node.id) + ") " + displayNode.node.name;
             grid[displayNode.y][displayNode.x] = val;
             colWidth = std::max(colWidth, val.size());
@@ -79,7 +80,7 @@ namespace Graph
         return out;
     }
 
-    void Graph::findRelationshipRecurse(const GraphNode *graphNode, std::set<int> &seen, int &x, const int y, DisplayNodes &out, Relationship relationship) const
+    DisplayNode *Graph::findRelationshipRecurse(const GraphNode *graphNode, std::set<int> &seen, int &x, const int y, DisplayNodes &out, Relationship relationship) const
     {
         if (graphNode == nullptr)
         {
@@ -88,7 +89,7 @@ namespace Graph
         auto node = graphNode->node;
         if (seen.find(node.id) != seen.end())
         {
-            return;
+            return nullptr;
         }
         seen.insert(node.id);
         auto startX = x;
@@ -98,16 +99,21 @@ namespace Graph
         {
             relationships = it->second;
         }
+        std::vector<DisplayNode *> edges;
         for (auto const &relation : relationships)
         {
-            findRelationshipRecurse(relation, seen, x, y + 1, out, relationship);
+            auto edge = findRelationshipRecurse(relation, seen, x, y + 1, out, relationship);
+            if (edge != nullptr)
+            {
+                edges.push_back(edge);
+            }
         }
-        DisplayNode displayNode{node, startX, y};
-        out.push_back(displayNode);
-        if (relationships.size() == 0)
+        out.emplace_back(node, startX, y, edges);
+        if (edges.size() == 0)
         {
             x++;
         }
+        return &out.back();
     }
 
     DisplayNodes Graph::findRelationship(const std::vector<Node::Node> &nodes, const Relationship relationship) const
