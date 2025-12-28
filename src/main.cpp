@@ -24,20 +24,14 @@ std::vector<Node::Node> getNodes(const Data::CSVData &data)
     }
 }
 
-int main()
+std::unique_ptr<CLI::CLI> initCLI(Graph::Graph &graph, UUID::UUID &uuid)
 {
-    std::unique_ptr<Data::IFile> file = std::make_unique<Data::File>(FILE_NAME);
-    Data::CSVData data(std::move(file));
-    auto nodes = getNodes(data);
-    UUID::UUID uuid(nodes);
-    Graph::Graph graph(nodes);
-
-    CLI::CLI cli;
-    auto menuState = std::make_unique<CLI::MenuState>(cli);
-    auto ancestorState = std::make_unique<CLI::AncestorState>(cli, graph);
-    auto descendentState = std::make_unique<CLI::DescendentState>(cli, graph);
-    auto addState = std::make_unique<CLI::AddState>(cli, graph, uuid);
-    auto removeState = std::make_unique<CLI::RemoveState>(cli, graph);
+    auto cli = std::make_unique<CLI::CLI>();
+    auto menuState = std::make_unique<CLI::MenuState>(*cli);
+    auto ancestorState = std::make_unique<CLI::AncestorState>(*cli, graph);
+    auto descendentState = std::make_unique<CLI::DescendentState>(*cli, graph);
+    auto addState = std::make_unique<CLI::AddState>(*cli, graph, uuid);
+    auto removeState = std::make_unique<CLI::RemoveState>(*cli, graph);
     menuState->setAncestorState(ancestorState.get());
     menuState->setDescendentState(descendentState.get());
     menuState->setAddState(addState.get());
@@ -46,6 +40,18 @@ int main()
     descendentState->setMenuState(menuState.get());
     addState->setMenuState(menuState.get());
     removeState->setMenuState(menuState.get());
+    return cli;
+}
+
+int main()
+{
+    std::unique_ptr<Data::IFile> file = std::make_unique<Data::File>(FILE_NAME);
+    Data::CSVData data(std::move(file));
+    auto nodes = getNodes(data);
+    UUID::UUID uuid(nodes);
+    Graph::Graph graph(nodes);
+
+    auto cli = initCLI(graph, uuid);
 
     return 0;
 }
