@@ -21,6 +21,7 @@ namespace Node
         std::time_t birth;
         Gender gender;
         std::vector<int> children;
+        std::vector<int> parents;
     };
 
     std::map<std::string, std::vector<std::string>> toDataframe(const std::vector<Node> &nodes) noexcept;

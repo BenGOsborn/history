@@ -13,6 +13,7 @@ namespace
     static const std::string HEAD_BIRTH = "birth";
     static const std::string HEAD_GENDER = "gender";
     static const std::string HEAD_CHILDREN = "children";
+    static const std::string HEAD_PARENTS = "parents";
 
     std::string serializeVec(const std::vector<int> &vec) noexcept
     {
@@ -88,6 +89,7 @@ namespace Node
             dataframe[HEAD_BIRTH].push_back(std::to_string(node.birth));
             dataframe[HEAD_GENDER].push_back(std::string(1, static_cast<char>(node.gender)));
             dataframe[HEAD_CHILDREN].push_back(serializeVec(node.children));
+            dataframe[HEAD_CHILDREN].push_back(serializeVec(node.parents));
         }
         return dataframe;
     }
@@ -107,12 +109,14 @@ namespace Node
             auto birth = getRowColumn(dataframe, HEAD_BIRTH, i);
             auto gender = getRowColumn(dataframe, HEAD_GENDER, i);
             auto children = getRowColumn(dataframe, HEAD_CHILDREN, i);
+            auto parents = getRowColumn(dataframe, HEAD_PARENTS, i);
             auto &node = nodes[i];
             node.id = std::stoi(id);
             node.name = name;
             node.birth = static_cast<std::time_t>(std::stol(birth));
             node.gender = parseGender(gender);
             node.children = deserializeVec(children);
+            node.parents = deserializeVec(parents);
         }
         return nodes;
     }
@@ -124,6 +128,7 @@ namespace Node
         auto birth = std::to_string(node.birth);
         auto gender = std::string(1, static_cast<char>(node.gender));
         auto children = serializeVec(node.children);
-        return os << "Node(" + id + "," + name + "," + birth + "," + gender + "," + "(" + serializeVec(node.children) + "))";
+        auto parents = serializeVec(node.parents);
+        return os << "Node(" + id + "," + name + "," + birth + "," + gender + "," + "(" + children + ")," + "(" + parents + "))";
     }
 }

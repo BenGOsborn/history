@@ -24,12 +24,20 @@ int main()
     Graph::Graph graph(std::move(nodesNew));
 
     std::cout << "Ancestors" << std::endl;
-    auto ancestors = graph.findAncestors({Node::Node{1}});
+    auto ancestors = graph.findAncestors({1});
     std::cout << ancestors << std::endl;
 
-    std::cout << "Descendents" << std::endl;
-    auto descendents = graph.findDescendents({Node::Node{1}});
+    std::cout << "Add node" << std::endl;
+    graph.addNode(Node::Node{10, "BIG TEST", 1766639278, Node::Gender::Male, {}, {1}});
+    ancestors = graph.findAncestors({10});
+    std::cout << ancestors << std::endl;
+
+    std::cout << "Delete node" << std::endl;
+    graph.removeNode(10);
+    auto descendents = graph.findDescendents({1});
     std::cout << descendents << std::endl;
+    ancestors = graph.findAncestors({1});
+    std::cout << ancestors << std::endl;
 
     return 0;
 }

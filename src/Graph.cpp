@@ -52,8 +52,9 @@ namespace
             }
         }
         std::string out;
-        for (auto const &row : grid)
+        for (int i = 0; i < grid.size(); i++)
         {
+            auto &row = grid[i];
             for (auto const &col : row)
             {
                 int padSize = colWidth + PADDING;
@@ -63,6 +64,10 @@ namespace
                     continue;
                 }
                 out += padString(col.val, colWidth + PADDING, EMPTY);
+            }
+            if (i == grid.size() - 1)
+            {
+                continue;
             }
             out += '\n';
         }
@@ -147,10 +152,11 @@ namespace Graph
         // Because the coordinates are 0-indexed
         height = ((height + 1) * ROW_COUNT) + (height * PIPE_ROW_COUNT);
         width += 1;
+        int rowSize = ROW_COUNT + PIPE_ROW_COUNT;
         std::vector<std::vector<Tile>> grid(height, std::vector<Tile>(width, {TileType::Empty, EMPTY}));
         for (auto const &displayNode : displayNodes)
         {
-            drawNode(grid, displayNode, ROW_COUNT + PIPE_ROW_COUNT);
+            drawNode(grid, displayNode, rowSize);
         }
         auto out = render(grid);
         return os << out;
@@ -165,17 +171,26 @@ namespace Graph
         }
         for (auto const &node : nodes)
         {
-            GraphNode &parentNode = nodes_[node.id];
-            for (auto &child : node.children)
+            GraphNode &graphNode = nodes_[node.id];
+            for (auto &childID : node.children)
             {
-                auto it = nodes_.find(child);
+                auto it = nodes_.find(childID);
                 if (it == nodes_.end())
                 {
                     throw std::runtime_error("invalid child");
                 }
-                GraphNode &childNode = nodes_[child];
-                childNode.relationships[Relationship::Parent].push_back(&nodes_[node.id]);
-                parentNode.relationships[Relationship::Child].push_back(&nodes_[child]);
+                auto &childNode = it->second;
+                graphNode.relationships[Relationship::Child].push_back(&childNode);
+            }
+            for (auto &parentID : node.parents)
+            {
+                auto it = nodes_.find(parentID);
+                if (it == nodes_.end())
+                {
+                    throw std::runtime_error("invalid parent");
+                }
+                auto &parentNode = it->second;
+                graphNode.relationships[Relationship::Parent].push_back(&parentNode);
             }
         }
     }
@@ -226,14 +241,14 @@ namespace Graph
         return &out.back();
     }
 
-    DisplayNodes Graph::findRelationship(const std::vector<Node::Node> &nodes, const Relationship relationship) const
+    DisplayNodes Graph::findRelationship(const std::vector<int> &nodes, const Relationship relationship) const
     {
         std::set<int> seen;
         DisplayNodes out;
         int x = 0;
         for (auto const &node : nodes)
         {
-            auto it = nodes_.find(node.id);
+            auto it = nodes_.find(node);
             if (it == nodes_.end())
             {
                 throw std::runtime_error("node does not exist");
@@ -243,13 +258,77 @@ namespace Graph
         return out;
     }
 
-    DisplayNodes Graph::findAncestors(const std::vector<Node::Node> &nodes) const
+    DisplayNodes Graph::findAncestors(const std::vector<int> &nodes) const
     {
         return findRelationship(nodes, Relationship::Parent);
     }
 
-    DisplayNodes Graph::findDescendents(const std::vector<Node::Node> &nodes) const
+    DisplayNodes Graph::findDescendents(const std::vector<int> &nodes) const
     {
         return findRelationship(nodes, Relationship::Child);
+    }
+
+    void Graph::addNode(const Node::Node &node)
+    {
+        auto it = nodes_.find(node.id);
+        if (it != nodes_.end())
+        {
+            throw std::runtime_error("node with id already exists");
+        }
+        nodes_[node.id] = GraphNode{node};
+        GraphNode &graphNode = nodes_[node.id];
+        for (auto const &childID : node.children)
+        {
+            auto it = nodes_.find(childID);
+            if (it == nodes_.end())
+            {
+                throw std::runtime_error("invalid child");
+            }
+            auto &childNode = it->second;
+            graphNode.relationships[Relationship::Child].push_back(&childNode);
+            childNode.node.parents.push_back(node.id);
+            childNode.relationships[Relationship::Parent].push_back(&graphNode);
+        }
+        for (auto const &parentID : node.parents)
+        {
+            auto it = nodes_.find(parentID);
+            if (it == nodes_.end())
+            {
+                throw std::runtime_error("invalid parent");
+            }
+            auto &parentNode = it->second;
+            graphNode.relationships[Relationship::Parent].push_back(&parentNode);
+            parentNode.node.children.push_back(node.id);
+            parentNode.relationships[Relationship::Child].push_back(&graphNode);
+        }
+    }
+
+    void Graph::removeNode(const int &id)
+    {
+        auto it = nodes_.find(id);
+        if (it == nodes_.end())
+        {
+            throw std::runtime_error("node does not exist");
+        }
+        // Because we can have child -> parent but not parent -> child (and vice versa), simplest way is to scan every node and edge. Optimize this in future.
+        for (auto &[_, graphNode] : nodes_)
+        {
+            auto &node = graphNode.node;
+            node.parents.erase(std::remove(node.parents.begin(), node.parents.end(), id), node.parents.end());
+            node.children.erase(std::remove(node.children.begin(), node.children.end(), id), node.children.end());
+            std::map<Relationship, std::vector<GraphNode *>> finalRelationships;
+            for (auto &[relationshipType, relationships] : graphNode.relationships)
+            {
+                for (auto &relationship : relationships)
+                {
+                    if (relationship->node.id != id)
+                    {
+                        finalRelationships[relationshipType].push_back(relationship);
+                    }
+                }
+            }
+            graphNode.relationships = finalRelationships;
+        }
+        nodes_.erase(id);
     }
 }
