@@ -24,23 +24,17 @@ std::vector<Node::Node> getNodes(const Data::CSVData &data)
     }
 }
 
-std::unique_ptr<CLI::CLI> initCLI(Graph::Graph &graph, UUID::UUID &uuid)
+void initCLI(CLI::CLI &cli, CLI::MenuState *menuState, CLI::AncestorState *ancestorState, CLI::DescendentState *descendentState, CLI::AddState *addState, CLI::RemoveState *removeState)
 {
-    auto cli = std::make_unique<CLI::CLI>();
-    auto menuState = std::make_unique<CLI::MenuState>(*cli);
-    auto ancestorState = std::make_unique<CLI::AncestorState>(*cli, graph);
-    auto descendentState = std::make_unique<CLI::DescendentState>(*cli, graph);
-    auto addState = std::make_unique<CLI::AddState>(*cli, graph, uuid);
-    auto removeState = std::make_unique<CLI::RemoveState>(*cli, graph);
-    menuState->setAncestorState(ancestorState.get());
-    menuState->setDescendentState(descendentState.get());
-    menuState->setAddState(addState.get());
-    menuState->setRemoveState(removeState.get());
-    ancestorState->setMenuState(menuState.get());
-    descendentState->setMenuState(menuState.get());
-    addState->setMenuState(menuState.get());
-    removeState->setMenuState(menuState.get());
-    return cli;
+    menuState->setAncestorState(ancestorState);
+    menuState->setDescendentState(descendentState);
+    menuState->setAddState(addState);
+    menuState->setRemoveState(removeState);
+    ancestorState->setMenuState(menuState);
+    descendentState->setMenuState(menuState);
+    addState->setMenuState(menuState);
+    removeState->setMenuState(menuState);
+    cli.setState(menuState);
 }
 
 int main()
@@ -51,7 +45,18 @@ int main()
     UUID::UUID uuid(nodes);
     Graph::Graph graph(nodes);
 
-    auto cli = initCLI(graph, uuid);
+    CLI::CLI cli;
+    auto menuState = std::make_unique<CLI::MenuState>(cli);
+    auto ancestorState = std::make_unique<CLI::AncestorState>(cli, graph);
+    auto descendentState = std::make_unique<CLI::DescendentState>(cli, graph);
+    auto addState = std::make_unique<CLI::AddState>(cli, graph, uuid);
+    auto removeState = std::make_unique<CLI::RemoveState>(cli, graph);
+    initCLI(cli, menuState.get(), ancestorState.get(), descendentState.get(), addState.get(), removeState.get());
+
+    while (true)
+    {
+        cli.render();
+    }
 
     return 0;
 }
