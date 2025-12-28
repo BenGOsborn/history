@@ -5,8 +5,9 @@ namespace CLI
 {
     class IState
     {
+    public:
         virtual ~IState() = default;
-        virtual void render();
+        virtual void render() = 0;
     };
 
     class CLI
@@ -14,6 +15,7 @@ namespace CLI
         IState *state_;
 
     public:
+        CLI();
         ~CLI() = default;
         void render();
         void setState(IState *state);
@@ -40,7 +42,7 @@ namespace CLI
     class AncestorState : IState
     {
         CLI &cli_;
-        Graph::Graph &graph;
+        const Graph::Graph &graph_;
         IState *menuState_;
 
     public:
@@ -53,7 +55,7 @@ namespace CLI
     class DescendentState : IState
     {
         CLI &cli_;
-        Graph::Graph &graph;
+        const Graph::Graph &graph_;
         IState *menuState_;
 
     public:
@@ -66,7 +68,7 @@ namespace CLI
     class AddState : IState
     {
         CLI &cli_;
-        Graph::Graph &graph;
+        Graph::Graph &graph_;
         IState *menuState_;
 
     public:
@@ -79,7 +81,7 @@ namespace CLI
     class RemoveState : IState
     {
         CLI &cli_;
-        Graph::Graph &graph;
+        Graph::Graph &graph_;
         IState *menuState_;
 
     public:
