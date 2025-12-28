@@ -10,6 +10,7 @@ add_executable(app
     src/Node.cpp
     src/Graph.cpp
     src/UUID.cpp
+    src/CLI.cpp
 )
 
 target_include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -1,5 +1,6 @@
 #include "Node.hpp"
 #include "Data.hpp"
+#include "UUID.hpp"
 #include "Graph.hpp"
 #include <iostream>
 #include <memory>
@@ -27,7 +28,8 @@ int main()
     std::unique_ptr<Data::IFile> file = std::make_unique<Data::File>(FILE_NAME);
     Data::CSVData data(std::move(file));
     auto nodes = getNodes(data);
-    Graph::Graph graph(std::move(nodes));
+    UUID::UUID uuid(nodes);
+    Graph::Graph graph(nodes);
 
     return 0;
 }
