@@ -56,7 +56,7 @@ namespace CLI
         menuState_ = state;
     }
 
-    AddState::AddState(CLI &cli, Graph::Graph &graph) : cli_(cli), graph_(graph), menuState_(nullptr) {}
+    AddState::AddState(CLI &cli, Graph::Graph &graph, UUID::UUID &uuid) : cli_(cli), graph_(graph), uuid_(uuid), menuState_(nullptr) {}
 
     void AddState::render() {}
 

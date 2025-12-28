@@ -1,6 +1,7 @@
 #include "Node.hpp"
 #include "Data.hpp"
 #include "UUID.hpp"
+#include "CLI.hpp"
 #include "Graph.hpp"
 #include <iostream>
 #include <memory>
@@ -30,6 +31,21 @@ int main()
     auto nodes = getNodes(data);
     UUID::UUID uuid(nodes);
     Graph::Graph graph(nodes);
+
+    CLI::CLI cli;
+    auto menuState = std::make_unique<CLI::MenuState>(cli);
+    auto ancestorState = std::make_unique<CLI::AncestorState>(cli, graph);
+    auto descendentState = std::make_unique<CLI::DescendentState>(cli, graph);
+    auto addState = std::make_unique<CLI::AddState>(cli, graph, uuid);
+    auto removeState = std::make_unique<CLI::RemoveState>(cli, graph);
+    menuState->setAncestorState(ancestorState.get());
+    menuState->setDescendentState(descendentState.get());
+    menuState->setAddState(addState.get());
+    menuState->setRemoveState(removeState.get());
+    ancestorState->setMenuState(menuState.get());
+    descendentState->setMenuState(menuState.get());
+    addState->setMenuState(menuState.get());
+    removeState->setMenuState(menuState.get());
 
     return 0;
 }
