@@ -1,12 +1,20 @@
 #include "CLI.hpp"
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 
 namespace
 {
     void clearScreen()
     {
         std::system("clear");
+    }
+
+    void waitForKey()
+    {
+        std::cout << "Press any key to continue...";
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cin.get();
     }
 }
 
@@ -29,7 +37,7 @@ namespace CLI
     void MenuState::render()
     {
         clearScreen();
-        std::cout << "=== Ancestry CLI ===\n"
+        std::cout << "=== Menu ===\n"
                      "1. Show ancestors\n"
                      "2. Show descendents\n"
                      "3. Add person\n"
@@ -78,7 +86,25 @@ namespace CLI
 
     AncestorState::AncestorState(CLI &cli, const Graph::Graph &graph) : cli_(cli), graph_(graph), menuState_(nullptr) {}
 
-    void AncestorState::render() {}
+    void AncestorState::render()
+    {
+        clearScreen();
+        std::cout << "=== Show ancestors ===\n"
+                     "Enter the ID of the node to visualize ancestors for.\n\n"
+                     "Your nodes:\n";
+        auto nodes = graph_.getNodes();
+        for (auto const &node : nodes)
+        {
+            std::cout << node << std::endl;
+        }
+        std::cout << "Node ID: ";
+        int id;
+        std::cin >> id;
+        auto ancestors = graph_.findAncestors(id);
+        std::cout << ancestors << std::endl;
+        waitForKey();
+        cli_.setState(menuState_);
+    }
 
     void AncestorState::setMenuState(IState *state)
     {
@@ -87,7 +113,25 @@ namespace CLI
 
     DescendentState::DescendentState(CLI &cli, const Graph::Graph &graph) : cli_(cli), graph_(graph), menuState_(nullptr) {}
 
-    void DescendentState::render() {}
+    void DescendentState::render()
+    {
+        clearScreen();
+        std::cout << "=== Show descendents ===\n"
+                     "Enter the ID of the node to visualize descendents for.\n\n"
+                     "Your nodes:\n";
+        auto nodes = graph_.getNodes();
+        for (auto const &node : nodes)
+        {
+            std::cout << node << std::endl;
+        }
+        std::cout << "Node ID: ";
+        int id;
+        std::cin >> id;
+        auto descendents = graph_.findDescendents(id);
+        std::cout << descendents << std::endl;
+        waitForKey();
+        cli_.setState(menuState_);
+    }
 
     void DescendentState::setMenuState(IState *state)
     {
