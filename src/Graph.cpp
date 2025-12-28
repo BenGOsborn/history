@@ -241,31 +241,28 @@ namespace Graph
         return &out.back();
     }
 
-    DisplayNodes Graph::findRelationship(const std::vector<int> &nodes, const Relationship relationship) const
+    DisplayNodes Graph::findRelationship(const int &id, const Relationship relationship) const
     {
         std::set<int> seen;
         DisplayNodes out;
         int x = 0;
-        for (auto const &node : nodes)
+        auto it = nodes_.find(id);
+        if (it == nodes_.end())
         {
-            auto it = nodes_.find(node);
-            if (it == nodes_.end())
-            {
-                throw std::runtime_error("node does not exist");
-            }
-            findRelationshipRecurse(&it->second, seen, x, 0, out, relationship);
+            throw std::runtime_error("node does not exist");
         }
+        findRelationshipRecurse(&it->second, seen, x, 0, out, relationship);
         return out;
     }
 
-    DisplayNodes Graph::findAncestors(const std::vector<int> &nodes) const
+    DisplayNodes Graph::findAncestors(const int &id) const
     {
-        return findRelationship(nodes, Relationship::Parent);
+        return findRelationship(id, Relationship::Parent);
     }
 
-    DisplayNodes Graph::findDescendents(const std::vector<int> &nodes) const
+    DisplayNodes Graph::findDescendents(const int &id) const
     {
-        return findRelationship(nodes, Relationship::Child);
+        return findRelationship(id, Relationship::Child);
     }
 
     void Graph::addNode(const Node::Node &node)
