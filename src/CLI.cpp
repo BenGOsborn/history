@@ -42,11 +42,13 @@ namespace CLI
                      "2. Show descendents\n"
                      "3. Add person\n"
                      "4. Remove person\n"
-                     "0. Quit\n> ";
+                     "0. Exit\n> ";
         int c;
         std::cin >> c;
         switch (c)
         {
+        case 0:
+            std::exit(EXIT_SUCCESS);
         case 1:
             cli_.setState(ancestorState_);
             break;
@@ -140,7 +142,10 @@ namespace CLI
 
     AddState::AddState(CLI &cli, Graph::Graph &graph, UUID::UUID &uuid) : cli_(cli), graph_(graph), uuid_(uuid), menuState_(nullptr) {}
 
-    void AddState::render() {}
+    void AddState::render()
+    {
+        cli_.setState(menuState_);
+    }
 
     void AddState::setMenuState(IState *state)
     {
@@ -149,7 +154,23 @@ namespace CLI
 
     RemoveState::RemoveState(CLI &cli, Graph::Graph &graph) : cli_(cli), graph_(graph), menuState_(nullptr) {}
 
-    void RemoveState::render() {}
+    void RemoveState::render()
+    {
+        clearScreen();
+        std::cout << "=== Remove state ===\n"
+                     "Enter the ID of the node to remove from the tree.\n\n"
+                     "Your nodes:\n";
+        auto nodes = graph_.getNodes();
+        for (auto const &node : nodes)
+        {
+            std::cout << node << std::endl;
+        }
+        std::cout << "Node ID: ";
+        int id;
+        std::cin >> id;
+        graph_.removeNode(id);
+        cli_.setState(menuState_);
+    }
 
     void RemoveState::setMenuState(IState *state)
     {
