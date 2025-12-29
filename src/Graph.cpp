@@ -164,6 +164,21 @@ namespace Graph
 
     Graph::Graph(const std::vector<Node::Node> &nodes)
     {
+        loadNodes(nodes);
+    }
+
+    std::vector<Node::Node> Graph::getNodes() const
+    {
+        std::vector<Node::Node> out;
+        for (auto const &[key, val] : nodes_)
+        {
+            out.push_back(val.node);
+        }
+        return out;
+    }
+
+    void Graph::loadNodes(const std::vector<Node::Node> &nodes)
+    {
         for (auto const &node : nodes)
         {
             GraphNode graphNode{node};
@@ -193,16 +208,6 @@ namespace Graph
                 graphNode.relationships[Relationship::Parent].push_back(&parentNode);
             }
         }
-    }
-
-    std::vector<Node::Node> Graph::getNodes() const
-    {
-        std::vector<Node::Node> out;
-        for (auto const &[key, val] : nodes_)
-        {
-            out.push_back(val.node);
-        }
-        return out;
     }
 
     DisplayNode *Graph::findRelationshipRecurse(const GraphNode *graphNode, std::set<int> &seen, int &x, const int y, DisplayNodes &out, Relationship relationship) const

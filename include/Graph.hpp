@@ -43,6 +43,7 @@ namespace Graph
         explicit Graph(const std::vector<Node::Node> &nodes);
         ~Graph() = default;
         std::vector<Node::Node> getNodes() const;
+        void loadNodes(const std::vector<Node::Node> &nodes);
         DisplayNodes findAncestors(const int &id) const;
         DisplayNodes findDescendents(const int &id) const;
         void addNode(const Node::Node &node);
