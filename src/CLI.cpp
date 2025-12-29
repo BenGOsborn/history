@@ -2,9 +2,14 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits>
+#include <sstream>
+#include <vector>
+#include <iomanip>
 
 namespace
 {
+    static const char VECTOR_DELIM = ',';
+
     void clearScreen()
     {
         std::system("clear");
@@ -13,8 +18,44 @@ namespace
     void waitForKey()
     {
         std::cout << "Press any key to continue...";
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cin.get();
+        std::string token;
+        std::getline(std::cin, token);
+    }
+
+    int parseInt(const std::string &i)
+    {
+        return std::stoi(i);
+    }
+
+    std::time_t parseDate(const std::string &date)
+    {
+        std::tm tm{};
+        std::istringstream ss(date);
+        ss >> std::get_time(&tm, "%d/%m/%Y");
+        if (ss.fail())
+        {
+            throw std::runtime_error("Invalid date format (dd/mm/yyyy)");
+        }
+        return std::mktime(&tm);
+    }
+
+    std::vector<int> parseVector(const std::string &vector)
+    {
+        std::vector<int> values;
+        std::string token;
+        std::istringstream tokenStream(vector);
+        while (std::getline(tokenStream, token, VECTOR_DELIM))
+        {
+            int val = std::stoi(token);
+            values.push_back(val);
+        }
+        return values;
+    }
+
+    Node::Gender parseGender(const std::string &gender)
+    {
+        auto genderI = gender[0];
+        return static_cast<Node::Gender>(genderI);
     }
 }
 
@@ -43,9 +84,9 @@ namespace CLI
                      "3. Add person\n"
                      "4. Remove person\n"
                      "0. Exit\n> ";
-        int c;
-        std::cin >> c;
-        switch (c)
+        std::string c;
+        std::getline(std::cin, c);
+        switch (parseInt(c))
         {
         case 0:
             std::exit(EXIT_SUCCESS);
@@ -100,9 +141,9 @@ namespace CLI
             std::cout << node << std::endl;
         }
         std::cout << "Node ID: ";
-        int id;
-        std::cin >> id;
-        auto ancestors = graph_.findAncestors(id);
+        std::string id;
+        std::getline(std::cin, id);
+        auto ancestors = graph_.findAncestors(parseInt(id));
         std::cout << ancestors << std::endl;
         waitForKey();
         cli_.setState(menuState_);
@@ -127,9 +168,9 @@ namespace CLI
             std::cout << node << std::endl;
         }
         std::cout << "Node ID: ";
-        int id;
-        std::cin >> id;
-        auto descendents = graph_.findDescendents(id);
+        std::string id;
+        std::getline(std::cin, id);
+        auto descendents = graph_.findDescendents(parseInt(id));
         std::cout << descendents << std::endl;
         waitForKey();
         cli_.setState(menuState_);
@@ -144,6 +185,33 @@ namespace CLI
 
     void AddState::render()
     {
+        clearScreen();
+        std::cout << "=== Add node ===\n";
+        int id = uuid_.generateID();
+        std::string token;
+        std::cout << "Enter the name: ";
+        std::getline(std::cin, token);
+        auto name = token;
+        std::cout << "Enter the date of birth: ";
+        std::getline(std::cin, token);
+        auto dob = parseDate(token);
+        std::cout << "Enter the gender: ";
+        std::getline(std::cin, token);
+        auto gender = parseGender(token);
+        std::cout << "Current nodes:\n";
+        auto nodes = graph_.getNodes();
+        for (auto const &node : nodes)
+        {
+            std::cout << node << std::endl;
+        }
+        std::cout << "Enter the children IDs (comma separated values, no spaces): ";
+        std::getline(std::cin, token);
+        auto children = parseVector(token);
+        std::cout << "Enter the parent IDs (comma separated values, no spaces): ";
+        std::getline(std::cin, token);
+        auto parents = parseVector(token);
+        Node::Node node{id, name, dob, gender, children, parents};
+        graph_.addNode(node);
         cli_.setState(menuState_);
     }
 
@@ -157,7 +225,7 @@ namespace CLI
     void RemoveState::render()
     {
         clearScreen();
-        std::cout << "=== Remove state ===\n"
+        std::cout << "=== Remove node ===\n"
                      "Enter the ID of the node to remove from the tree.\n\n"
                      "Your nodes:\n";
         auto nodes = graph_.getNodes();
@@ -166,9 +234,9 @@ namespace CLI
             std::cout << node << std::endl;
         }
         std::cout << "Node ID: ";
-        int id;
-        std::cin >> id;
-        graph_.removeNode(id);
+        std::string id;
+        std::getline(std::cin, id);
+        graph_.removeNode(parseInt(id));
         cli_.setState(menuState_);
     }
 
