@@ -92,4 +92,30 @@ namespace CLI
         void render() override;
         void setMenuState(IState *state);
     };
+
+    class LoadState : public IState
+    {
+        CLI &cli_;
+        Graph::Graph &graph_;
+        IState *menuState_;
+
+    public:
+        LoadState(CLI &cli, Graph::Graph &graph);
+        ~LoadState() = default;
+        void render() override;
+        void setMenuState(IState *state);
+    };
+
+    class SaveState : public IState
+    {
+        CLI &cli_;
+        Graph::Graph &graph_;
+        IState *menuState_;
+
+    public:
+        SaveState(CLI &cli, Graph::Graph &graph);
+        ~SaveState() = default;
+        void render() override;
+        void setMenuState(IState *state);
+    };
 }

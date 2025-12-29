@@ -1,9 +1,11 @@
 #include "CLI.hpp"
+#include "Data.hpp"
 #include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <sstream>
 #include <vector>
+#include <memory>
 #include <iomanip>
 
 namespace
@@ -244,4 +246,39 @@ namespace CLI
     {
         menuState_ = state;
     }
+
+    LoadState::LoadState(CLI &cli, Graph::Graph &graph) : cli_(cli), graph_(graph), menuState_(nullptr) {}
+
+    void LoadState::render()
+    {
+        clearScreen();
+        std::cout << "=== Load state ===\n"
+                     "Enter the filename of the file you want to load: ";
+        std::string filename;
+        std::getline(std::cin, filename);
+        std::unique_ptr<Data::IFile> file = std::make_unique<Data::File>(filename);
+        Data::CSVData data(std::move(file));
+        auto dfNew = data.read();
+        graph_.loadNodes(dfNew);
+        cli_.setState(menuState_);
+    }
+
+    void LoadState::setMenuState(IState *state)
+    {
+        menuState_ = state;
+    }
+
+    SaveState::SaveState(CLI &cli, Graph::Graph &graph) : cli_(cli), graph_(graph), menuState_(nullptr) {}
+
+    void SaveState::render()
+    {
+        clearScreen();
+        cli_.setState(menuState_);
+    }
+
+    void SaveState::setMenuState(IState *state)
+    {
+        menuState_ = state;
+    }
+
 }
