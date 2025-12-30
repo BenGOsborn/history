@@ -89,7 +89,7 @@ namespace Node
             dataframe[HEAD_BIRTH].push_back(std::to_string(node.birth));
             dataframe[HEAD_GENDER].push_back(std::string(1, static_cast<char>(node.gender)));
             dataframe[HEAD_CHILDREN].push_back(serializeVec(node.children));
-            dataframe[HEAD_CHILDREN].push_back(serializeVec(node.parents));
+            dataframe[HEAD_PARENTS].push_back(serializeVec(node.parents));
         }
         return dataframe;
     }

@@ -162,9 +162,8 @@ namespace Graph
         return os << out;
     }
 
-    Graph::Graph(const std::vector<Node::Node> &nodes)
+    Graph::Graph() : id_(0)
     {
-        loadNodes(nodes);
     }
 
     std::vector<Node::Node> Graph::getNodes() const
@@ -179,11 +178,14 @@ namespace Graph
 
     void Graph::loadNodes(const std::vector<Node::Node> &nodes)
     {
+        int mx = -1;
         for (auto const &node : nodes)
         {
             GraphNode graphNode{node};
             nodes_[node.id] = graphNode;
+            mx = std::max(mx, node.id);
         }
+        id_ = mx + 1;
         for (auto const &node : nodes)
         {
             GraphNode &graphNode = nodes_[node.id];
@@ -270,8 +272,10 @@ namespace Graph
         return findRelationship(id, Relationship::Child);
     }
 
-    void Graph::addNode(const Node::Node &node)
+    void Graph::addNode(const Node::Node &data)
     {
+        auto node = data;
+        node.id = id_++;
         auto it = nodes_.find(node.id);
         if (it != nodes_.end())
         {

@@ -1,6 +1,5 @@
 #pragma once
 #include "Graph.hpp"
-#include "UUID.hpp"
 
 namespace CLI
 {
@@ -29,6 +28,8 @@ namespace CLI
         IState *descendentState_;
         IState *addState_;
         IState *removeState_;
+        IState *loadState_;
+        IState *saveState_;
 
     public:
         MenuState(CLI &cli);
@@ -38,6 +39,8 @@ namespace CLI
         void setDescendentState(IState *state);
         void setAddState(IState *state);
         void setRemoveState(IState *state);
+        void setLoadState(IState *state);
+        void setSaveState(IState *state);
     };
 
     class AncestorState : public IState
@@ -70,11 +73,10 @@ namespace CLI
     {
         CLI &cli_;
         Graph::Graph &graph_;
-        UUID::UUID &uuid_;
         IState *menuState_;
 
     public:
-        AddState(CLI &cli, Graph::Graph &graph, UUID::UUID &uuid);
+        AddState(CLI &cli, Graph::Graph &graph);
         ~AddState() = default;
         void render() override;
         void setMenuState(IState *state);

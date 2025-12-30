@@ -9,7 +9,6 @@ add_executable(app
     src/Data.cpp
     src/Node.cpp
     src/Graph.cpp
-    src/UUID.cpp
     src/CLI.cpp
 )
 

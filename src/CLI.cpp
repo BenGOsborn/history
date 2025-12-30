@@ -85,6 +85,8 @@ namespace CLI
                      "2. Show descendents\n"
                      "3. Add person\n"
                      "4. Remove person\n"
+                     "5. Load state\n"
+                     "6. Save state\n"
                      "0. Exit\n> ";
         std::string c;
         std::getline(std::cin, c);
@@ -103,6 +105,12 @@ namespace CLI
             break;
         case 4:
             cli_.setState(removeState_);
+            break;
+        case 5:
+            cli_.setState(loadState_);
+            break;
+        case 6:
+            cli_.setState(saveState_);
             break;
         default:
             std::cout << "Invalid option" << std::endl;
@@ -127,6 +135,16 @@ namespace CLI
     void MenuState::setRemoveState(IState *state)
     {
         removeState_ = state;
+    }
+
+    void MenuState::setLoadState(IState *state)
+    {
+        loadState_ = state;
+    }
+
+    void MenuState::setSaveState(IState *state)
+    {
+        saveState_ = state;
     }
 
     AncestorState::AncestorState(CLI &cli, const Graph::Graph &graph) : cli_(cli), graph_(graph), menuState_(nullptr) {}
@@ -183,13 +201,12 @@ namespace CLI
         menuState_ = state;
     }
 
-    AddState::AddState(CLI &cli, Graph::Graph &graph, UUID::UUID &uuid) : cli_(cli), graph_(graph), uuid_(uuid), menuState_(nullptr) {}
+    AddState::AddState(CLI &cli, Graph::Graph &graph) : cli_(cli), graph_(graph), menuState_(nullptr) {}
 
     void AddState::render()
     {
         clearScreen();
         std::cout << "=== Add node ===\n";
-        int id = uuid_.generateID();
         std::string token;
         std::cout << "Enter the name: ";
         std::getline(std::cin, token);
@@ -212,7 +229,7 @@ namespace CLI
         std::cout << "Enter the parent IDs (comma separated values, no spaces): ";
         std::getline(std::cin, token);
         auto parents = parseVector(token);
-        Node::Node node{id, name, dob, gender, children, parents};
+        Node::Node node{0, name, dob, gender, children, parents};
         graph_.addNode(node);
         cli_.setState(menuState_);
     }
@@ -253,13 +270,14 @@ namespace CLI
     {
         clearScreen();
         std::cout << "=== Load state ===\n"
-                     "Enter the filename of the file you want to load: ";
+                     "Enter the name of the file you want to load: ";
         std::string filename;
         std::getline(std::cin, filename);
         std::unique_ptr<Data::IFile> file = std::make_unique<Data::File>(filename);
         Data::CSVData data(std::move(file));
-        auto dfNew = data.read();
-        graph_.loadNodes(dfNew);
+        auto df = data.read();
+        auto nodes = Node::fromDataframe(df);
+        graph_.loadNodes(nodes);
         cli_.setState(menuState_);
     }
 
@@ -273,6 +291,15 @@ namespace CLI
     void SaveState::render()
     {
         clearScreen();
+        std::cout << "=== Save state ===\n"
+                     "Enter the name of the file you want to save to: ";
+        std::string filename;
+        std::getline(std::cin, filename);
+        std::unique_ptr<Data::IFile> file = std::make_unique<Data::File>(filename);
+        Data::CSVData data(std::move(file));
+        auto nodes = graph_.getNodes();
+        auto df = Node::toDataframe(nodes);
+        data.write(df);
         cli_.setState(menuState_);
     }
 
